@@ -1,0 +1,68 @@
+.mgc-viewport {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  touch-action: none;
+}
+
+.mgc-viewport .mgc-surface {
+  display: flex;
+  justify-content: center;
+  transform-origin: center;
+}
+
+.mgc-viewport .mgc-surface > svg {
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.mgc-viewport.mgc-dragging {
+  user-select: none;
+}
+
+.mgc-viewport.mgc-dragging .mgc-surface > svg {
+  cursor: grabbing;
+}
+
+.mgc-viewport .mgc-surface > svg:focus,
+.mgc-viewport .mgc-surface > svg:focus-visible {
+  outline: none;
+}
+
+.mgc-viewport .mgc-toolbar {
+  position: absolute;
+  top: var(--size-2-2, 4px);
+  right: var(--size-2-2, 4px);
+  z-index: 1;
+  opacity: 0;
+}
+
+.mgc-viewport:hover .mgc-toolbar,
+.mgc-viewport:focus-within .mgc-toolbar {
+  opacity: 1;
+}
+
+.mgc-viewport .mgc-toolbar button {
+  color: var(--text-normal);
+  background: var(--background-secondary);
+  padding: var(--size-2-2, 4px) var(--size-2-3, 6px);
+}
+
+.mgc-viewport.mgc-fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background: var(--background-primary);
+}
+
+.mgc-viewport.mgc-fullscreen .mgc-surface {
+  flex-shrink: 0;
+}
+
+.mgc-viewport.mgc-window-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-modal, 1000);
+}

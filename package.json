@@ -1,0 +1,25 @@
+{
+  "name": "mermaid-pilot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mouse controls for Mermaid diagrams in Obsidian.",
+  "type": "module",
+  "main": "main.js",
+  "author": "A.J",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "check": "tsc --noEmit && node scripts/check.mjs && npm test",
+    "build": "npm run check && node esbuild.config.mjs production",
+    "install:local": "npm run build && node scripts/install-local.mjs",
+    "version": "node scripts/version-bump.mjs",
+    "test": "node scripts/test-controls.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "esbuild": "^0.25.5",
+    "jsdom": "^30.1.3",
+    "obsidian": "latest",
+    "typescript": "^5.8.3"
+  }
+}
