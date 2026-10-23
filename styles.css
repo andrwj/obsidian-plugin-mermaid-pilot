@@ -34,12 +34,32 @@
   top: var(--size-2-2, 4px);
   right: var(--size-2-2, 4px);
   z-index: 1;
+  display: flex;
+  gap: var(--size-2-2, 4px);
   opacity: 0;
 }
 
 .mgc-viewport:hover .mgc-toolbar,
 .mgc-viewport:focus-within .mgc-toolbar {
   opacity: 1;
+}
+
+.mgc-viewport .mgc-exit-fullscreen {
+  display: none;
+}
+
+.mgc-viewport.mgc-fullscreen .mgc-exit-fullscreen {
+  display: inline-flex;
+}
+
+.mgc-viewport.mgc-fullscreen .mgc-toolbar {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .mgc-viewport .mgc-toolbar {
+    opacity: 1;
+  }
 }
 
 .mgc-viewport .mgc-toolbar button {
@@ -54,6 +74,7 @@
   justify-content: center;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   background: var(--background-primary);
 }
 

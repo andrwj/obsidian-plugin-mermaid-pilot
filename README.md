@@ -1,8 +1,10 @@
 # Mermaid Pilot
 
-Zoom, pan, and view Mermaid diagrams in full screen without leaving your Obsidian note. Works in Reading view and Live Preview. Desktop only.
+Zoom, pan, and view Mermaid diagrams in full screen without leaving your Obsidian note. Works in Reading view and Live Preview, with mouse and touch controls.
 
 ## Controls
+
+### Mouse and keyboard
 
 | Action                    | Control                                        |
 | ------------------------- | ---------------------------------------------- |
@@ -11,6 +13,14 @@ Zoom, pan, and view Mermaid diagrams in full screen without leaving your Obsidia
 | Enter / leave full screen | Focus the diagram, then press `Enter`          |
 | Leave full screen         | `Esc`                                          |
 | Reset zoom and position   | `0` while focused, or the `↺` button           |
+
+### Mobile and iPad
+
+- Double-tap a diagram to enter or leave full screen.
+- Drag with one finger to pan. Lift all fingers after a two-finger gesture before panning again.
+- Tap `↺` to reset, or `×` to leave full screen.
+
+Scroll the note from outside the diagram. Single taps on links still open them.
 
 Click a diagram or use `Tab` to focus it. Each diagram has its own zoom and position, with a zoom range of 20–500%. Leaving full screen restores the previous view.
 
@@ -21,10 +31,12 @@ Zoom and position reset when Obsidian replaces a diagram during rendering. They 
 ## Manual installation
 
 1. Create a `mermaid-graph-control` folder inside your vault's `.obsidian/plugins/` directory.
-2. Copy `main.js`, `manifest.json`, and `styles.css` from a release into that folder.
+2. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/andrwj/obsidian-plugin-mermaid-pilot/releases/latest) and copy them into that folder.
 3. Reload Obsidian and enable **Mermaid Pilot** under **Settings → Community plugins**.
 
-The folder name is the plugin ID and differs from the display name. Tested with Obsidian 1.14.4.
+The folder name is the plugin ID and differs from the display name.
+
+Desktop tested with Obsidian 1.14.4. Touch controls are covered by automated tests and browser touch emulation; testing on physical mobile and iPad devices is pending.
 
 ## Development
 
@@ -34,7 +46,7 @@ Use Node.js 22 or later.
 npm install
 npm run dev     # Watch source changes
 npm run check   # TypeScript, metadata, and interaction tests
-npm run build  # Production build
+npm run build   # Production build
 ```
 
 To build and install into a local vault:
@@ -45,6 +57,18 @@ OBSIDIAN_VAULT=/path/to/vault npm run install:local
 
 The installer copies only the three plugin files. It does not enable the plugin or change vault settings.
 
+## Releases
+
+After committing and pushing a version update, push a matching tag without a `v` prefix (for example, `1.0.1`). GitHub Actions builds the plugin, generates provenance attestations for all three release files, and publishes the release.
+
+Releases built by this workflow include GitHub artifact attestations. Verify downloaded files with:
+
+```sh
+gh attestation verify main.js --repo andrwj/obsidian-plugin-mermaid-pilot
+gh attestation verify manifest.json --repo andrwj/obsidian-plugin-mermaid-pilot
+gh attestation verify styles.css --repo andrwj/obsidian-plugin-mermaid-pilot
+```
+
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). Project setup based on the [Obsidian sample plugin](https://github.com/obsidianmd/obsidian-sample-plugin).

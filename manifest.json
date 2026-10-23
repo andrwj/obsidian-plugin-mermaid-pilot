@@ -1,9 +1,9 @@
 {
   "id": "mermaid-graph-control",
   "name": "Mermaid Pilot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.5.0",
-  "description": "Mouse controls for Mermaid diagrams.",
+  "description": "Zoom, pan, and view Mermaid diagrams in full screen.",
   "author": "A.J",
-  "isDesktopOnly": true
+  "isDesktopOnly": false
 }

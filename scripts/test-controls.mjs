@@ -27,6 +27,24 @@ const dom = new JSDOM(`<body>
   <div class="markdown-source-view mod-cm6"><div class="mermaid"><svg id="b"></svg></div></div>
   <svg id="ordinary"></svg>
 </body>`, { pretendToBeVisual: true });
+// Obsidian adds these helpers to each window's DOM prototypes.
+function installDomHelpers(window) {
+  window.HTMLElement.prototype.createEl = function(tag, options = {}, callback) {
+    const element = this.ownerDocument.createElement(tag);
+    if (typeof options === "string") options = { cls: options };
+    if (options.cls) element.className = Array.isArray(options.cls) ? options.cls.join(" ") : options.cls;
+    if (options.text !== undefined) element.textContent = options.text;
+    if (options.title !== undefined) element.title = options.title;
+    for (const [name, value] of Object.entries(options.attr ?? {})) element.setAttribute(name, String(value));
+    callback?.(element);
+    this.append(element);
+    return element;
+  };
+  window.HTMLElement.prototype.createDiv = function(options, callback) {
+    return this.createEl("div", options, callback);
+  };
+}
+installDomHelpers(dom.window);
 const { document: doc } = dom.window;
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 const a = doc.querySelector("#a");
@@ -65,9 +83,10 @@ await tick();
 assert.equal(doc.querySelectorAll(".mgc-viewport").length, 2);
 const viewport = a.closest(".mgc-viewport");
 const surface = a.parentElement;
-function pointer(target, type, { x = 0, y = 0, button = 0, buttons = 1, id = 1 } = {}) {
-  const event = new dom.window.MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, button, buttons });
-  Object.defineProperty(event, "pointerId", { value: id });
+function pointer(target, type, { x = 0, y = 0, button = 0, buttons = 1, id = 1, pointerType = "mouse" } = {}) {
+  const window = target.ownerDocument?.defaultView ?? target.defaultView;
+  const event = new window.MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, button, buttons });
+  Object.defineProperties(event, { pointerId: { value: id }, pointerType: { value: pointerType } });
   target.dispatchEvent(event);
   return event;
 }
@@ -157,5 +176,106 @@ pointer(doc, "pointermove", { x: 100 });
 container.innerHTML = '<svg id="after-disable"></svg>';
 await tick();
 assert.equal(doc.querySelectorAll(".mgc-viewport").length, 0, "observer is disconnected on disable");
+// Mobile interaction sequences, with a deterministic clock for tap timing.
+const mobile = new JSDOM('<body><div class="markdown-source-view"><div class="mermaid"><svg id="touch"><a href="#link"><text>Link</text></a></svg></div><div class="mermaid"><svg id="other"></svg></div></div></body>', { pretendToBeVisual: true });
+installDomHelpers(mobile.window);
+const mobileDoc = mobile.window.document;
+const mobileManager = new GraphDocument(mobileDoc);
+mobileManager.load();
+const touchSvg = mobileDoc.querySelector("#touch");
+const touchSurface = touchSvg.parentElement;
+const touchViewport = touchSvg.closest(".mgc-viewport");
+const touchContainer = touchViewport.parentElement;
+const otherSurface = mobileDoc.querySelector("#other").parentElement;
+const realNow = Date.now;
+let touchTime = realNow() + 1000;
+Date.now = () => touchTime;
+const touch = (target, type, options = {}) => pointer(target, type, { ...options, pointerType: "touch" });
+const tap = (target = touchSvg, { x = 50, y = 50, duration = 20 } = {}) => {
+  touch(target, "pointerdown", { x, y });
+  touchTime += duration;
+  touch(target, "pointerup", { x, y, buttons: 0 });
+};
+const doubleTap = (target = touchSvg) => { tap(target); touchTime += 80; tap(target); };
+try {
+  touch(touchSvg, "pointerdown", { x: 20, y: 20 });
+  touch(mobileDoc, "pointermove", { x: 70, y: 55, buttons: 0 });
+  assert.equal(touchSurface.style.transform, "translate(50px, 35px) scale(1)", "touch pan does not depend on mouse buttons");
+  touch(mobileDoc, "pointerup", { x: 70, y: 55, buttons: 0 });
+  const touchClick = new mobile.window.MouseEvent("click", { bubbles: true, cancelable: true });
+  touchSvg.dispatchEvent(touchClick);
+  assert.equal(touchClick.defaultPrevented, true, "touch pan suppresses delayed compatibility click");
+  assert.equal(otherSurface.style.transform, "", "touch only changes the targeted graph");
+  const savedTouchView = touchSurface.style.transform;
+  touchTime += 600;
+  tap();
+  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "one tap does not expand");
+  touchTime += 80;
+  tap();
+  await tick();
+  assert.equal(touchViewport.classList.contains("mgc-window-fullscreen"), true);
+  assert.equal(touchViewport.parentElement, mobileDoc.body, "fallback escapes transformed editor ancestors");
+  assert.ok(touchContainer.contains(touchContainer.querySelector('[aria-hidden="true"]')), "note space is preserved");
+  assert.equal(mobileDoc.querySelectorAll(".mgc-viewport").length, 2, "observer does not unload portaled graph");
+  doubleTap();
+  await tick();
+  assert.equal(touchViewport.parentElement, touchContainer);
+  assert.equal(touchSurface.style.transform, savedTouchView, "double tap restores previous zoom and pan");
+  assert.equal(touchContainer.querySelector('[aria-hidden="true"]'), null);
+  touchTime += 600;
+  tap(); touchTime += 400; tap(); await tick();
+  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "slow taps do not expand");
+  touchTime += 600;
+  tap(); touchTime += 50; tap(touchSvg, { x: 150 }); await tick();
+  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "distant taps do not expand");
+  touchTime += 600;
+  tap(); tap(touchSvg, { duration: 310 }); tap(); await tick();
+  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "long press breaks tap sequence");
+  touchTime += 600;
+  tap();
+  touch(touchSvg, "pointerdown"); touch(mobileDoc, "pointercancel", { buttons: 0 });
+  tap(); await tick();
+  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "cancelled touch breaks tap sequence");
+  touchTime += 600;
+  doubleTap(touchSvg.querySelector("a")); await tick();
+  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "link taps remain available for navigation");
+  const beforeMultiTouch = touchSurface.style.transform;
+  touch(touchSvg, "pointerdown", { id: 1 });
+  touch(mobileDoc.body, "pointerdown", { id: 2 });
+  touch(mobileDoc, "pointermove", { x: 200, id: 1 });
+  assert.equal(touchSurface.style.transform, beforeMultiTouch, "second finger cancels active pan, even outside graph");
+  touch(mobileDoc, "pointerup", { id: 1, buttons: 0 });
+  touch(mobileDoc, "pointerup", { id: 2, buttons: 0 });
+  touch(touchSvg, "pointerdown", { x: 10, y: 10 });
+  touch(mobileDoc, "pointermove", { x: 30, y: 20 });
+  touch(mobileDoc, "pointerup", { buttons: 0 });
+  assert.notEqual(touchSurface.style.transform, beforeMultiTouch, "one finger pan resumes after all fingers lift");
+  touchTime += 600;
+  doubleTap(); await tick();
+  touchViewport.querySelector(".mgc-exit-fullscreen").click(); await tick();
+  assert.equal(touchViewport.parentElement, touchContainer, "close button restores fallback");
+  touchTime += 600;
+  doubleTap(); await tick();
+  touchContainer.replaceChildren(); await tick();
+  assert.equal(mobileDoc.contains(touchViewport), false, "rerender removes fallback overlay without resurrecting SVG");
+  assert.equal(touchSvg.hasAttribute("tabindex"), false);
+} finally {
+  Date.now = realNow;
+  mobileManager.unload();
+  mobile.window.close();
+}
+
+// Helpers must create controls in the graph's own document (popout windows).
+const popout = new JSDOM('<body><div class="markdown-rendered"><div class="mermaid"><svg></svg></div></div></body>', { pretendToBeVisual: true });
+installDomHelpers(popout.window);
+const popoutManager = new GraphDocument(popout.window.document);
+popoutManager.load();
+for (const control of popout.window.document.querySelectorAll(".mgc-viewport, .mgc-surface, .mgc-toolbar, button")) {
+  assert.equal(control.ownerDocument, popout.window.document);
+}
+assert.equal(popout.window.document.querySelectorAll(".mgc-viewport").length, 1);
+popoutManager.unload();
+assert.equal(popout.window.document.querySelectorAll(".mgc-viewport").length, 0);
+popout.window.close();
 dom.window.close();
-console.log("Graph controls: Mermaid staging isolation, reading/Live Preview DOM, zoom limits, independent views, pan, context menu, fullscreen, rerender and unload passed.");
+console.log("Graph controls: touch pan/double tap/multitouch cancellation, mobile fullscreen restoration, Mermaid staging isolation, reading/Live Preview DOM, zoom limits, independent views, pan, context menu, fullscreen, rerender and unload passed.");

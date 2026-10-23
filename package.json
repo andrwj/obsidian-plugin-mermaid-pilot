@@ -1,8 +1,8 @@
 {
   "name": "mermaid-pilot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
-  "description": "Mouse controls for Mermaid diagrams in Obsidian.",
+  "description": "Mouse and touch controls for Mermaid diagrams in Obsidian.",
   "type": "module",
   "main": "main.js",
   "author": "A.J",
