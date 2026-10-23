@@ -59,7 +59,9 @@ The installer copies only the three plugin files. It does not enable the plugin 
 
 ## Releases
 
-After committing and pushing a version update, push a matching tag without a `v` prefix (for example, `1.0.1`). GitHub Actions builds the plugin, generates provenance attestations for all three release files, and publishes the release.
+1.0.2 cleans up full-screen height styling while keeping compatibility with older WebViews.
+
+After committing and pushing a version update, push a matching tag without a `v` prefix (for example, `1.0.2`). GitHub Actions builds the plugin, generates provenance attestations for all three release files, and publishes the release.
 
 Releases built by this workflow include GitHub artifact attestations. Verify downloaded files with:
 

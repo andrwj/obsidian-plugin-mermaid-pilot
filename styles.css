@@ -74,8 +74,13 @@
   justify-content: center;
   width: 100vw;
   height: 100vh;
-  height: 100dvh;
   background: var(--background-primary);
+}
+
+@supports (height: 100dvh) {
+  .mgc-viewport.mgc-fullscreen {
+    height: 100dvh;
+  }
 }
 
 .mgc-viewport.mgc-fullscreen .mgc-surface {
