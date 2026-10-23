@@ -41,7 +41,7 @@ export class GraphControl extends Component {
   constructor(readonly svg: SVGSVGElement) {
     super();
     const doc = svg.ownerDocument;
-    this.placeholder = doc.createComment("mermaid-graph-control");
+    this.placeholder = doc.createComment("mermaid-pilot");
     this.viewport = svg.parentElement!.createDiv({
       cls: "mgc-viewport",
       attr: {

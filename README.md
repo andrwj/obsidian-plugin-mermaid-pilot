@@ -30,11 +30,13 @@ Zoom and position reset when Obsidian replaces a diagram during rendering. They 
 
 ## Manual installation
 
-1. Create a `mermaid-graph-control` folder inside your vault's `.obsidian/plugins/` directory.
+1. Create a `mermaid-pilot` folder inside your vault's `.obsidian/plugins/` directory.
 2. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/andrwj/obsidian-plugin-mermaid-pilot/releases/latest) and copy them into that folder.
 3. Reload Obsidian and enable **Mermaid Pilot** under **Settings → Community plugins**.
 
-The folder name is the plugin ID and differs from the display name.
+The plugin ID and installation folder are both `mermaid-pilot`.
+
+Upgrading from 1.0.2 or earlier: disable the old `mermaid-graph-control` plugin and install this version in `mermaid-pilot`. Obsidian treats the new ID as a separate plugin.
 
 Desktop tested with Obsidian 1.14.4. Touch controls are covered by automated tests and browser touch emulation; testing on physical mobile and iPad devices is pending.
 
@@ -59,9 +61,9 @@ The installer copies only the three plugin files. It does not enable the plugin 
 
 ## Releases
 
-1.0.2 cleans up full-screen height styling while keeping compatibility with older WebViews.
+1.0.3 changes the plugin ID from `mermaid-graph-control` to `mermaid-pilot` to match the package name.
 
-After committing and pushing a version update, push a matching tag without a `v` prefix (for example, `1.0.2`). GitHub Actions builds the plugin, generates provenance attestations for all three release files, and publishes the release.
+After committing and pushing a version update, push a matching tag without a `v` prefix (for example, `1.0.3`). GitHub Actions builds the plugin, generates provenance attestations for all three release files, and publishes the release.
 
 Releases built by this workflow include GitHub artifact attestations. Verify downloaded files with:
 
