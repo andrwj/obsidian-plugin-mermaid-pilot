@@ -1,7 +1,7 @@
 {
   "id": "mermaid-pilot",
   "name": "Mermaid Pilot",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "minAppVersion": "1.5.0",
   "description": "Zoom, pan, and view Mermaid diagrams in full screen.",
   "author": "A.J",
