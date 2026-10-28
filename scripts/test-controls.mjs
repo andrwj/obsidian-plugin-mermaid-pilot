@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 
 // Model only the public lifecycle/event contract; exercise actual controller code.
 const result = await build({
-  entryPoints: ["src/graph-control.ts"], bundle: true, write: false, format: "cjs", platform: "node",
+  entryPoints: ["src/mermaid-pilot-control.ts"], bundle: true, write: false, format: "cjs", platform: "node",
   plugins: [{ name: "obsidian-test-component", setup(builder) {
     builder.onResolve({ filter: /^obsidian$/ }, () => ({ path: "obsidian", namespace: "test" }));
     builder.onLoad({ filter: /.*/, namespace: "test" }, () => ({ contents: `
@@ -51,7 +51,7 @@ const a = doc.querySelector("#a");
 const b = doc.querySelector("#b");
 const manager = new GraphDocument(doc);
 manager.load();
-assert.equal(doc.querySelectorAll(".mgc-viewport").length, 2);
+assert.equal(doc.querySelectorAll(".mermaid-pilot-viewport").length, 2);
 assert.equal(doc.querySelector("#ordinary").parentElement, doc.body);
 // Obsidian renders Mermaid asynchronously in a hidden, body-level .mermaid
 // container before copying the completed SVG into the markdown view. Both
@@ -68,7 +68,7 @@ stagingSvg.querySelector("g").append(doc.createElementNS("http://www.w3.org/2000
 await tick();
 assert.equal(stagingSvg.parentElement, staging, "observer preserves Mermaid rendering tree across async steps");
 assert.equal(stagingSvg.hasAttribute("tabindex"), false);
-assert.equal(staging.querySelector(".mgc-viewport"), null);
+assert.equal(staging.querySelector(".mermaid-pilot-viewport"), null);
 const rendered = doc.createElement("div");
 rendered.className = "markdown-rendered";
 rendered.innerHTML = '<div class="mermaid"></div>';
@@ -77,11 +77,11 @@ rendered.firstElementChild.innerHTML = staging.innerHTML;
 doc.body.append(rendered);
 staging.remove();
 await tick();
-assert.equal(rendered.querySelectorAll(".mgc-viewport").length, 1, "completed markdown graph is enhanced");
+assert.equal(rendered.querySelectorAll(".mermaid-pilot-viewport").length, 1, "completed markdown graph is enhanced");
 rendered.remove();
 await tick();
-assert.equal(doc.querySelectorAll(".mgc-viewport").length, 2);
-const viewport = a.closest(".mgc-viewport");
+assert.equal(doc.querySelectorAll(".mermaid-pilot-viewport").length, 2);
+const viewport = a.closest(".mermaid-pilot-viewport");
 const surface = a.parentElement;
 function pointer(target, type, { x = 0, y = 0, button = 0, buttons = 1, id = 1, pointerType = "mouse" } = {}) {
   const window = target.ownerDocument?.defaultView ?? target.defaultView;
@@ -128,7 +128,7 @@ assert.match(surface.style.transform, /scale\(5\)/);
 pointer(doc, "pointermove", { y: 10000, button: 2, buttons: 2 });
 assert.match(surface.style.transform, /scale\(0\.2\)/);
 pointer(doc, "pointercancel");
-assert.equal(viewport.classList.contains("mgc-dragging"), false);
+assert.equal(viewport.classList.contains("mermaid-pilot-dragging"), false);
 key("0");
 pointer(a, "pointerdown");
 pointer(doc, "pointermove", { x: 50, y: 30 });
@@ -139,9 +139,9 @@ a.querySelector("a").dispatchEvent(click);
 assert.equal(click.defaultPrevented, true, "pan does not accidentally open links");
 const beforeFullscreen = surface.style.transform;
 key("Enter"); await tick();
-assert.equal(viewport.classList.contains("mgc-window-fullscreen"), true, "fallback when native fullscreen unavailable");
+assert.equal(viewport.classList.contains("mermaid-pilot-window-fullscreen"), true, "fallback when native fullscreen unavailable");
 key("Escape");
-assert.equal(viewport.classList.contains("mgc-fullscreen"), false);
+assert.equal(viewport.classList.contains("mermaid-pilot-fullscreen"), false);
 assert.equal(surface.style.transform, beforeFullscreen);
 // Exercise the native fullscreen success/change branch too.
 Object.defineProperty(doc, "fullscreenElement", { configurable: true, writable: true, value: null });
@@ -149,7 +149,7 @@ viewport.requestFullscreen = async () => { doc.fullscreenElement = viewport; doc
 doc.exitFullscreen = async () => { doc.fullscreenElement = null; doc.dispatchEvent(new dom.window.Event("fullscreenchange")); };
 key("Enter"); await tick();
 assert.equal(doc.fullscreenElement, viewport);
-assert.equal(viewport.classList.contains("mgc-window-fullscreen"), false);
+assert.equal(viewport.classList.contains("mermaid-pilot-window-fullscreen"), false);
 await doc.exitFullscreen();
 assert.equal(surface.style.transform, beforeFullscreen, "native Escape restores previous view");
 key("Enter"); await tick(); key("Enter"); await tick();
@@ -163,19 +163,19 @@ pointer(doc, "pointermove", { x: 25 });
 container.innerHTML = '<svg id="replacement"></svg>';
 await tick();
 assert.equal(b.hasAttribute("tabindex"), false);
-assert.equal(container.querySelectorAll(".mgc-viewport").length, 1);
+assert.equal(container.querySelectorAll(".mermaid-pilot-viewport").length, 1);
 assert.equal(doc.contains(b), false, "removed SVG is not resurrected");
 const replacement = container.querySelector("svg");
 pointer(replacement, "pointerdown");
 pointer(doc, "pointermove", { x: 40 });
 manager.unload();
-assert.equal(doc.querySelectorAll(".mgc-viewport").length, 0);
+assert.equal(doc.querySelectorAll(".mermaid-pilot-viewport").length, 0);
 assert.equal(a.getAttribute("tabindex"), "3");
 assert.equal(replacement.hasAttribute("tabindex"), false);
 pointer(doc, "pointermove", { x: 100 });
 container.innerHTML = '<svg id="after-disable"></svg>';
 await tick();
-assert.equal(doc.querySelectorAll(".mgc-viewport").length, 0, "observer is disconnected on disable");
+assert.equal(doc.querySelectorAll(".mermaid-pilot-viewport").length, 0, "observer is disconnected on disable");
 // Mobile interaction sequences, with a deterministic clock for tap timing.
 const mobile = new JSDOM('<body><div class="markdown-source-view"><div class="mermaid"><svg id="touch"><a href="#link"><text>Link</text></a></svg></div><div class="mermaid"><svg id="other"></svg></div></div></body>', { pretendToBeVisual: true });
 installDomHelpers(mobile.window);
@@ -184,7 +184,7 @@ const mobileManager = new GraphDocument(mobileDoc);
 mobileManager.load();
 const touchSvg = mobileDoc.querySelector("#touch");
 const touchSurface = touchSvg.parentElement;
-const touchViewport = touchSvg.closest(".mgc-viewport");
+const touchViewport = touchSvg.closest(".mermaid-pilot-viewport");
 const touchContainer = touchViewport.parentElement;
 const otherSurface = mobileDoc.querySelector("#other").parentElement;
 const realNow = Date.now;
@@ -209,14 +209,14 @@ try {
   const savedTouchView = touchSurface.style.transform;
   touchTime += 600;
   tap();
-  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "one tap does not expand");
+  assert.equal(touchViewport.classList.contains("mermaid-pilot-fullscreen"), false, "one tap does not expand");
   touchTime += 80;
   tap();
   await tick();
-  assert.equal(touchViewport.classList.contains("mgc-window-fullscreen"), true);
+  assert.equal(touchViewport.classList.contains("mermaid-pilot-window-fullscreen"), true);
   assert.equal(touchViewport.parentElement, mobileDoc.body, "fallback escapes transformed editor ancestors");
   assert.ok(touchContainer.contains(touchContainer.querySelector('[aria-hidden="true"]')), "note space is preserved");
-  assert.equal(mobileDoc.querySelectorAll(".mgc-viewport").length, 2, "observer does not unload portaled graph");
+  assert.equal(mobileDoc.querySelectorAll(".mermaid-pilot-viewport").length, 2, "observer does not unload portaled graph");
   doubleTap();
   await tick();
   assert.equal(touchViewport.parentElement, touchContainer);
@@ -224,21 +224,21 @@ try {
   assert.equal(touchContainer.querySelector('[aria-hidden="true"]'), null);
   touchTime += 600;
   tap(); touchTime += 400; tap(); await tick();
-  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "slow taps do not expand");
+  assert.equal(touchViewport.classList.contains("mermaid-pilot-fullscreen"), false, "slow taps do not expand");
   touchTime += 600;
   tap(); touchTime += 50; tap(touchSvg, { x: 150 }); await tick();
-  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "distant taps do not expand");
+  assert.equal(touchViewport.classList.contains("mermaid-pilot-fullscreen"), false, "distant taps do not expand");
   touchTime += 600;
   tap(); tap(touchSvg, { duration: 310 }); tap(); await tick();
-  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "long press breaks tap sequence");
+  assert.equal(touchViewport.classList.contains("mermaid-pilot-fullscreen"), false, "long press breaks tap sequence");
   touchTime += 600;
   tap();
   touch(touchSvg, "pointerdown"); touch(mobileDoc, "pointercancel", { buttons: 0 });
   tap(); await tick();
-  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "cancelled touch breaks tap sequence");
+  assert.equal(touchViewport.classList.contains("mermaid-pilot-fullscreen"), false, "cancelled touch breaks tap sequence");
   touchTime += 600;
   doubleTap(touchSvg.querySelector("a")); await tick();
-  assert.equal(touchViewport.classList.contains("mgc-fullscreen"), false, "link taps remain available for navigation");
+  assert.equal(touchViewport.classList.contains("mermaid-pilot-fullscreen"), false, "link taps remain available for navigation");
   const beforeMultiTouch = touchSurface.style.transform;
   touch(touchSvg, "pointerdown", { id: 1 });
   touch(mobileDoc.body, "pointerdown", { id: 2 });
@@ -252,7 +252,7 @@ try {
   assert.notEqual(touchSurface.style.transform, beforeMultiTouch, "one finger pan resumes after all fingers lift");
   touchTime += 600;
   doubleTap(); await tick();
-  touchViewport.querySelector(".mgc-exit-fullscreen").click(); await tick();
+  touchViewport.querySelector(".mermaid-pilot-exit-fullscreen").click(); await tick();
   assert.equal(touchViewport.parentElement, touchContainer, "close button restores fallback");
   touchTime += 600;
   doubleTap(); await tick();
@@ -270,12 +270,12 @@ const popout = new JSDOM('<body><div class="markdown-rendered"><div class="merma
 installDomHelpers(popout.window);
 const popoutManager = new GraphDocument(popout.window.document);
 popoutManager.load();
-for (const control of popout.window.document.querySelectorAll(".mgc-viewport, .mgc-surface, .mgc-toolbar, button")) {
+for (const control of popout.window.document.querySelectorAll(".mermaid-pilot-viewport, .mermaid-pilot-surface, .mermaid-pilot-toolbar, button")) {
   assert.equal(control.ownerDocument, popout.window.document);
 }
-assert.equal(popout.window.document.querySelectorAll(".mgc-viewport").length, 1);
+assert.equal(popout.window.document.querySelectorAll(".mermaid-pilot-viewport").length, 1);
 popoutManager.unload();
-assert.equal(popout.window.document.querySelectorAll(".mgc-viewport").length, 0);
+assert.equal(popout.window.document.querySelectorAll(".mermaid-pilot-viewport").length, 0);
 popout.window.close();
 dom.window.close();
 console.log("Graph controls: touch pan/double tap/multitouch cancellation, mobile fullscreen restoration, Mermaid staging isolation, reading/Live Preview DOM, zoom limits, independent views, pan, context menu, fullscreen, rerender and unload passed.");

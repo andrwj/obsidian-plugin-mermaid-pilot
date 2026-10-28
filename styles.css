@@ -1,35 +1,35 @@
-.mgc-viewport {
+.mermaid-pilot-viewport {
   position: relative;
   overflow: hidden;
   isolation: isolate;
   touch-action: none;
 }
 
-.mgc-viewport .mgc-surface {
+.mermaid-pilot-viewport .mermaid-pilot-surface {
   display: flex;
   justify-content: center;
   transform-origin: center;
 }
 
-.mgc-viewport .mgc-surface > svg {
+.mermaid-pilot-viewport .mermaid-pilot-surface > svg {
   flex-shrink: 0;
   cursor: grab;
 }
 
-.mgc-viewport.mgc-dragging {
+.mermaid-pilot-viewport.mermaid-pilot-dragging {
   user-select: none;
 }
 
-.mgc-viewport.mgc-dragging .mgc-surface > svg {
+.mermaid-pilot-viewport.mermaid-pilot-dragging .mermaid-pilot-surface > svg {
   cursor: grabbing;
 }
 
-.mgc-viewport .mgc-surface > svg:focus,
-.mgc-viewport .mgc-surface > svg:focus-visible {
+.mermaid-pilot-viewport .mermaid-pilot-surface > svg:focus,
+.mermaid-pilot-viewport .mermaid-pilot-surface > svg:focus-visible {
   outline: none;
 }
 
-.mgc-viewport .mgc-toolbar {
+.mermaid-pilot-viewport .mermaid-pilot-toolbar {
   position: absolute;
   top: var(--size-2-2, 4px);
   right: var(--size-2-2, 4px);
@@ -39,36 +39,36 @@
   opacity: 0;
 }
 
-.mgc-viewport:hover .mgc-toolbar,
-.mgc-viewport:focus-within .mgc-toolbar {
+.mermaid-pilot-viewport:hover .mermaid-pilot-toolbar,
+.mermaid-pilot-viewport:focus-within .mermaid-pilot-toolbar {
   opacity: 1;
 }
 
-.mgc-viewport .mgc-exit-fullscreen {
+.mermaid-pilot-viewport .mermaid-pilot-exit-fullscreen {
   display: none;
 }
 
-.mgc-viewport.mgc-fullscreen .mgc-exit-fullscreen {
+.mermaid-pilot-viewport.mermaid-pilot-fullscreen .mermaid-pilot-exit-fullscreen {
   display: inline-flex;
 }
 
-.mgc-viewport.mgc-fullscreen .mgc-toolbar {
+.mermaid-pilot-viewport.mermaid-pilot-fullscreen .mermaid-pilot-toolbar {
   opacity: 1;
 }
 
 @media (hover: none), (pointer: coarse) {
-  .mgc-viewport .mgc-toolbar {
+  .mermaid-pilot-viewport .mermaid-pilot-toolbar {
     opacity: 1;
   }
 }
 
-.mgc-viewport .mgc-toolbar button {
+.mermaid-pilot-viewport .mermaid-pilot-toolbar button {
   color: var(--text-normal);
   background: var(--background-secondary);
   padding: var(--size-2-2, 4px) var(--size-2-3, 6px);
 }
 
-.mgc-viewport.mgc-fullscreen {
+.mermaid-pilot-viewport.mermaid-pilot-fullscreen {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,16 +78,16 @@
 }
 
 @supports (height: 100dvh) {
-  .mgc-viewport.mgc-fullscreen {
+  .mermaid-pilot-viewport.mermaid-pilot-fullscreen {
     height: 100dvh;
   }
 }
 
-.mgc-viewport.mgc-fullscreen .mgc-surface {
+.mermaid-pilot-viewport.mermaid-pilot-fullscreen .mermaid-pilot-surface {
   flex-shrink: 0;
 }
 
-.mgc-viewport.mgc-window-fullscreen {
+.mermaid-pilot-viewport.mermaid-pilot-window-fullscreen {
   position: fixed;
   inset: 0;
   z-index: var(--layer-modal, 1000);

@@ -1,5 +1,5 @@
 import { Plugin } from "obsidian";
-import { GraphDocument } from "./graph-control";
+import { GraphDocument } from "./mermaid-pilot-control";
 
 export default class MermaidPilotPlugin extends Plugin {
   override onload(): void {

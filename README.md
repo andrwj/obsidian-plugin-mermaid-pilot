@@ -36,7 +36,7 @@ Zoom and position reset when Obsidian replaces a diagram during rendering. They 
 
 The plugin ID and installation folder are both `mermaid-pilot`.
 
-Upgrading from 1.0.2 or earlier: disable the old `mermaid-graph-control` plugin and install this version in `mermaid-pilot`. Obsidian treats the new ID as a separate plugin.
+Upgrading from 1.0.2 or earlier: disable the previously installed plugin and install this version in `mermaid-pilot`. Obsidian treats the new ID as a separate plugin.
 
 Desktop tested with Obsidian 1.14.4. Touch controls are covered by automated tests and browser touch emulation; testing on physical mobile and iPad devices is pending.
 
@@ -61,7 +61,7 @@ The installer copies only the three plugin files. It does not enable the plugin 
 
 ## Releases
 
-1.0.3 changes the plugin ID from `mermaid-graph-control` to `mermaid-pilot` to match the package name.
+1.0.3 aligns the plugin ID with the package name, `mermaid-pilot`.
 
 After committing and pushing a version update, push a matching tag without a `v` prefix (for example, `1.0.3`). GitHub Actions builds the plugin, generates provenance attestations for all three release files, and publishes the release.
 

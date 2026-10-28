@@ -19,7 +19,7 @@ type Drag = { id: number; button: number; x: number; y: number; view: View; move
 type Tap = { time: number; x: number; y: number };
 
 /** One transient view per rendered Mermaid SVG. No note or settings writes. */
-export class GraphControl extends Component {
+export class MermaidPilotControl extends Component {
   readonly viewport: HTMLDivElement;
   private readonly surface: HTMLDivElement;
   private readonly toolbar: HTMLDivElement;
@@ -43,22 +43,22 @@ export class GraphControl extends Component {
     const doc = svg.ownerDocument;
     this.placeholder = doc.createComment("mermaid-pilot");
     this.viewport = svg.parentElement!.createDiv({
-      cls: "mgc-viewport",
+      cls: "mermaid-pilot-viewport",
       attr: {
         role: "group",
         "aria-label": "Mermaid graph controls",
         "aria-description": "Right drag: zoom. Drag: pan. Double tap or Enter: fullscreen. Escape: exit fullscreen. 0: reset.",
       },
     });
-    this.surface = this.viewport.createDiv({ cls: "mgc-surface" });
-    this.toolbar = this.viewport.createDiv({ cls: "mgc-toolbar" });
+    this.surface = this.viewport.createDiv({ cls: "mermaid-pilot-surface" });
+    this.toolbar = this.viewport.createDiv({ cls: "mermaid-pilot-toolbar" });
     const reset = this.toolbar.createEl("button", {
       text: "↺",
       title: "Reset zoom and pan (0)",
       attr: { type: "button", "aria-label": "Reset graph zoom and pan (0)" },
     });
     const close = this.toolbar.createEl("button", {
-      cls: "mgc-exit-fullscreen",
+      cls: "mermaid-pilot-exit-fullscreen",
       text: "×",
       title: "Exit full screen",
       attr: { type: "button", "aria-label": "Exit full screen" },
@@ -111,7 +111,7 @@ export class GraphControl extends Component {
     }, true);
     this.registerDomEvent(this.viewport, "keydown", (event) => this.keyDown(event));
     this.registerDomEvent(doc, "fullscreenchange", () => {
-      if (this.expanded && !this.viewport.classList.contains("mgc-window-fullscreen") && doc.fullscreenElement !== this.viewport) this.restore();
+      if (this.expanded && !this.viewport.classList.contains("mermaid-pilot-window-fullscreen") && doc.fullscreenElement !== this.viewport) this.restore();
     });
     if (doc.defaultView) this.registerDomEvent(doc.defaultView, "blur", () => {
       this.touches.clear();
@@ -147,7 +147,7 @@ export class GraphControl extends Component {
     }
     event.preventDefault();
     event.stopPropagation();
-    this.viewport.classList.add("mgc-dragging");
+    this.viewport.classList.add("mermaid-pilot-dragging");
     if (drag.button === 2) {
       this.view = { ...drag.view, scale: clamp(drag.view.scale * Math.exp(-dy / 200)) };
       this.suppressMenuUntil = Date.now() + 800;
@@ -192,7 +192,7 @@ export class GraphControl extends Component {
     this.drag = undefined;
     const pendingMenu = this.pendingMenu;
     this.pendingMenu = undefined;
-    this.viewport.classList.remove("mgc-dragging");
+    this.viewport.classList.remove("mermaid-pilot-dragging");
     if (drag.moved) {
       if (drag.button === 2) this.suppressMenuUntil = Date.now() + 800;
       else this.suppressClickUntil = Date.now() + (drag.touch ? 500 : 100);
@@ -250,7 +250,7 @@ export class GraphControl extends Component {
     const originalHeight = this.viewport.getBoundingClientRect().height;
     this.fullscreenWidth = `${this.surface.getBoundingClientRect().width / this.view.scale}px`;
     this.expanded = true;
-    this.viewport.classList.add("mgc-fullscreen");
+    this.viewport.classList.add("mermaid-pilot-fullscreen");
     this.surface.style.width = this.fullscreenWidth;
     this.view = { scale: 1, x: 0, y: 0 };
     this.applyView();
@@ -271,7 +271,7 @@ export class GraphControl extends Component {
         this.fallbackSpacer.style.height = `${originalHeight}px`;
         parent.insertBefore(this.fallbackSpacer, this.viewport);
       }
-      this.viewport.classList.add("mgc-window-fullscreen");
+      this.viewport.classList.add("mermaid-pilot-window-fullscreen");
       this.svg.ownerDocument.body.append(this.viewport);
     }
     const bounds = this.viewport.getBoundingClientRect();
@@ -298,7 +298,7 @@ export class GraphControl extends Component {
       this.fallbackSpacer.remove();
       this.fallbackSpacer = undefined;
     }
-    this.viewport.classList.remove("mgc-fullscreen", "mgc-window-fullscreen");
+    this.viewport.classList.remove("mermaid-pilot-fullscreen", "mermaid-pilot-window-fullscreen");
     this.surface.style.removeProperty("width");
     this.view = this.savedView ?? { scale: 1, x: 0, y: 0 };
     this.savedView = undefined;
@@ -323,7 +323,7 @@ export class GraphControl extends Component {
 
 /** Observe asynchronous Mermaid rendering in reading view and Live Preview. */
 export class GraphDocument extends Component {
-  private readonly graphs = new Map<SVGSVGElement, GraphControl>();
+  private readonly graphs = new Map<SVGSVGElement, MermaidPilotControl>();
   constructor(private readonly doc: Document) { super(); }
 
   override onload(): void {
@@ -338,13 +338,13 @@ export class GraphDocument extends Component {
   scan(): void {
     for (const [svg, graph] of this.graphs) {
       if (!svg.isConnected || !graph.sourceConnected || !graph.viewport.contains(svg)
-        || (!graph.viewport.classList.contains("mgc-fullscreen") && !svg.matches(GRAPH_SELECTOR))) {
+        || (!graph.viewport.classList.contains("mermaid-pilot-fullscreen") && !svg.matches(GRAPH_SELECTOR))) {
         graph.unload(); this.removeChild(graph); this.graphs.delete(svg);
       }
     }
     for (const svg of Array.from(this.doc.querySelectorAll<SVGSVGElement>(GRAPH_SELECTOR))) {
-      if (!this.graphs.has(svg) && !svg.closest(".mgc-viewport") && !svg.parentElement?.closest("svg")) {
-        const graph = new GraphControl(svg);
+      if (!this.graphs.has(svg) && !svg.closest(".mermaid-pilot-viewport") && !svg.parentElement?.closest("svg")) {
+        const graph = new MermaidPilotControl(svg);
         this.graphs.set(svg, graph);
         this.addChild(graph);
       }
